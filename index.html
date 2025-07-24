@@ -20,10 +20,56 @@
       align-items: center;
       justify-content: center;
       flex-direction: column;
+      position: relative;
+      width: 100vw;
+      max-width: 100%;
+      overflow: hidden;
     }
     .love-photo {
       max-height: 300px;
       object-fit: cover;
+      width: 100%;
+    }
+    @media (max-width: 768px) {
+      .love-section {
+        min-height: 50vh;
+        padding: 0 !important;
+      }
+      .row.align-items-center > div {
+        margin-bottom: 24px;
+      }
+      .rounded-circle {
+        width: 120px !important;
+        height: 120px !important;
+      }
+      .display-5 {
+        font-size: 2rem;
+      }
+      .lead {
+        font-size: 1.1rem !important;
+      }
+      .btn {
+        font-size: 1rem !important;
+      }
+      .container-fluid, .container {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+    }
+    @media (max-width: 576px) {
+      .rounded-circle {
+        width: 90px !important;
+        height: 90px !important;
+      }
+      .love-section {
+        min-height: 40vh;
+      }
+      .display-5 {
+        font-size: 1.3rem;
+      }
+      .btn {
+        font-size: 0.9rem !important;
+      }
     }
   </style>
 </head>
@@ -35,6 +81,10 @@
         <a class="navbar-brand p-0" href="#">
           <img src="img/logo.png" alt="Logo" style="height:40px; width:auto;" />
         </a>
+        <!-- Müzik kontrol butonu -->
+        <button id="music-toggle-btn" class="btn btn-outline-danger ms-3" type="button">
+          <span id="music-btn-icon" class="bi bi-pause-fill"></span> Müzik Durdur
+        </button>
       </div>
     </nav>
   </header>
@@ -106,6 +156,9 @@
     </div>
   </footer>
 
+  <!-- Audio elementi (gizli) -->
+  <audio id="love-audio" src="img/music.mp3" autoplay loop></audio>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <script>
@@ -169,18 +222,20 @@
 
         document.getElementById('love-message-main').textContent = siteData.loveMessages[0];
 
-        // Diğer mesajlar ve galeri (varsa)
+        // 2. ve 3. özel mesajlar için boşluk azaltıldı ve konumları değiştirildi
         const msgSection = document.getElementById('love-messages-section');
         msgSection.innerHTML = '';
-        siteData.loveMessages.slice(1).forEach((msg, i) => {
-          const div = document.createElement('div');
-          div.className = 'love-section text-center';
-          div.setAttribute('data-aos', 'fade-up');
-          div.setAttribute('data-aos-delay', `${(i+1) * 150}`);
-          div.innerHTML = `<p class="fst-italic fs-4 text-secondary">${msg}</p>`;
-          msgSection.appendChild(div);
-        });
 
+        // 2. mesajı galeri öncesine ekle
+        if (siteData.loveMessages[1]) {
+          const div = document.createElement('div');
+          div.className = 'love-section text-center py-2'; // py-2 ile boşluk azaltıldı
+          div.setAttribute('data-aos', 'fade-up');
+          div.innerHTML = `<p class="fst-italic fs-5 text-secondary mb-1">${siteData.loveMessages[1]}</p>`;
+          msgSection.appendChild(div);
+        }
+
+        // Galeri
         const galeriSection = document.getElementById('couple-gallery-section');
         galeriSection.innerHTML = '';
         siteData.couplePhotos.slice(1).forEach((photo, i) => {
@@ -195,7 +250,61 @@
           col.appendChild(img);
           galeriSection.appendChild(col);
         });
+
+        // 3. mesajı galeri sonrasına ekle
+        if (siteData.loveMessages[2]) {
+          const div = document.createElement('div');
+          div.className = 'love-section text-center py-2'; // py-2 ile boşluk azaltıldı
+          div.setAttribute('data-aos', 'fade-up');
+          div.innerHTML = `<p class="fst-italic fs-5 text-secondary mb-1">${siteData.loveMessages[2]}</p>`;
+          galeriSection.parentElement.appendChild(div);
+        }
       }
+    });
+
+    // Müzik kontrolü
+    const audio = document.getElementById('love-audio');
+    const btn = document.getElementById('music-toggle-btn');
+    const icon = document.getElementById('music-btn-icon');
+
+    // Bootstrap ikonları için CDN ekleyin (head kısmına ekleyebilirsiniz)
+    // <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    // Otomatik başlat ve döngü
+    audio.autoplay = true;
+    audio.loop = true;
+    audio.volume = 0.7;
+
+    btn.addEventListener('click', function() {
+      if (audio.paused) {
+        audio.play();
+        btn.textContent = " Müzik Durdur";
+        icon.className = "bi bi-pause-fill";
+        btn.prepend(icon);
+      } else {
+        audio.pause();
+        btn.textContent = " Müzik Devam Ettir";
+        icon.className = "bi bi-play-fill";
+        btn.prepend(icon);
+      }
+    });
+
+    // Şarkı bittiğinde tekrar başlat (loop varsa gerek yok, ama ek güvenlik için)
+    audio.addEventListener('ended', function() {
+      audio.currentTime = 0;
+      audio.play();
+    });
+
+    // Sayfa yüklenince otomatik başlat (bazı tarayıcılarda kullanıcı etkileşimi gerekebilir)
+    document.addEventListener('DOMContentLoaded', function () {
+      setTimeout(() => {
+        audio.play().catch(() => {
+          // Otomatik başlatılamazsa, butona tıklamayı bekle
+          btn.textContent = " Müzik Başlat";
+          icon.className = "bi bi-play-fill";
+          btn.prepend(icon);
+        });
+      }, 500);
     });
   </script>
   <script src="data.js"></script>
